@@ -1,0 +1,11 @@
+#macro (dynamic_condition $groupId $directive $operand)
+	#if ($operand != $null && $operand != '')
+		${_dynamic_condition_support.getDirective($groupId, $directive)} $!bodyContent
+	#end
+#end
+
+#macro (in $columnName $operand)
+	#if ($operand != $null)
+		${_in_support.execute(${columnName}, ${operand})}
+	#end
+#end

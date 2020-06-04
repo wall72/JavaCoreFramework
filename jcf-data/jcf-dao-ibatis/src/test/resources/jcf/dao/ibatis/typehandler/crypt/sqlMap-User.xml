@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="crypt">
+			
+	<typeAlias alias="user" type="jcf.dao.ibatis.typehandler.crypt.User"/>
+
+	<resultMap id="userMap" class="user" >
+		<result property="id" column="id" />
+		<result property="password" column="password" />
+	</resultMap>	
+
+	<resultMap id="userMapDecrypt" class="user" >
+		<result property="id" column="id" />
+		<result property="password" column="password" typeHandler="jcf.dao.ibatis.typehandler.CryptStringTypeHandler"/>
+	</resultMap>	
+
+	<statement id="insert" parameterClass="user" >
+	<![CDATA[
+		INSERT INTO
+		USER ( 
+			id, 
+			password
+		) VALUES (
+			#id#, 
+			#password,handler=jcf.dao.ibatis.typehandler.CryptStringTypeHandler#
+		)
+	]]>
+	</statement>
+	
+	<statement id="select" resultMap="userMap">
+	<![CDATA[
+		SELECT 
+			id, 
+			password
+		FROM 
+			USER
+	]]>
+	</statement>
+
+	<statement id="selectDecrypt" resultMap="userMapDecrypt">
+	<![CDATA[
+		SELECT 
+			id, 
+			password
+		FROM 
+			USER
+	]]>
+	</statement>
+
+</sqlMap>

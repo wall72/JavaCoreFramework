@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+	<params>
+		<param id="ErrorMsg" type="STRING">SUCCESS</param>
+		<param id="ErrorCode" type="STRING">0</param>
+	</params>
+	<dataset id="product">
+		<colinfo id="bigDecimal" size="255" type="DECIMAL"/>
+		<colinfo id="productDescription" size="255" type="STRING"/>
+		<colinfo id="productId" size="255" type="INT"/>
+		<colinfo id="productName" size="255" type="STRING"/>
+		<colinfo id="productTypeId" size="255" type="STRING"/>
+		<colinfo id="updated" size="255" type="DATE"/>
+		<record>
+			<bigDecimal>0.55</bigDecimal>
+			<productDescription>ddd</productDescription>
+			<productId>1</productId>
+			<productName/>
+			<productTypeId/>
+			<updated/>
+		</record>
+	</dataset>
+</root>

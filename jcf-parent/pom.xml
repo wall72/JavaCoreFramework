@@ -1,0 +1,94 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>jcf</groupId>
+	<artifactId>jcf-parent</artifactId>
+	<packaging>pom</packaging>
+	<version>3.7.5-SNAPSHOT</version>
+	<name>JCF master pom</name>
+	<prerequisites>
+		<maven>2.0.9</maven>
+	</prerequisites>
+	<url>http://jcf.daewoobrenic.co.kr/</url>
+	<ciManagement>
+		<url>http://dev.daewoobrenic.co.kr/jenkins/</url>
+		<system>jenkins</system>
+	</ciManagement>
+	<issueManagement>
+		<system>redmine</system>
+		<url>http://jcf.daewoobrenic.co.kr/redmine</url>
+	</issueManagement>
+	<organization>
+		<name>Daewoo Information Systems Co.Ltd.</name>
+		<url>http://www.daewoobrenic.com</url>
+	</organization>
+	<inceptionYear>2013</inceptionYear>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<!-- http://maven.apache.org/plugins/maven-compiler-plugin/ -->
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<docfilessubdirs>true</docfilessubdirs>
+					<quiet>true</quiet>
+				</configuration>
+				<executions>
+					<execution>
+						<id>attach-javadoc</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+
+		<!--
+		플러그인이 임의로 업데이트되면서 빌드가 불시에 깨질 수 있다.
+		그러므로 플러그인 버전은 확인 후 수동으로 업데이트해주도록 한다.
+		아래 정보는 effective pom에서 쉽게 얻을 수 있다.
+		 -->
+	</build>
+	<repositories>
+		<repository>
+		    <id>thirdparty</id>
+		    <name>hosted 3rd party libraries</name>
+		    <url>http://dev.daewoobrenic.co.kr/nexus/content/repositories/thirdparty</url>
+		</repository>
+	</repositories>
+	<distributionManagement>
+		<repository>
+			<id>jcf-release</id>
+			<name>JCF Release Repository</name>
+			<url>http://dev.daewoobrenic.co.kr/nexus/content/repositories/jcf-release</url>
+		</repository>
+		<snapshotRepository>
+			<id>jcf-snapshot</id>
+			<name>JCF Snapshot Repository</name>
+			<url>http://dev.daewoobrenic.co.kr/nexus/content/repositories/jcf-snapshot</url>
+		</snapshotRepository>
+	</distributionManagement>
+	<properties>
+		<encoding>UTF-8</encoding>
+	</properties>
+</project>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:sec="http://www.springframework.org/schema/security"
+	xmlns:ehcache="http://ehcache-spring-annotations.googlecode.com/svn/schema/ehcache-spring"
+	xmlns:jcfquery="http://www.daewoobrenic.co.kr/schema/jcfquery"
+	xsi:schemaLocation="http://www.springframework.org/schema/jdbc
+		http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
+		http://www.springframework.org/schema/aop
+		http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context-3.0.xsd
+		http://www.springframework.org/schema/security
+		http://www.springframework.org/schema/security/spring-security-3.0.xsd
+		http://ehcache-spring-annotations.googlecode.com/svn/schema/ehcache-spring
+		http://ehcache-spring-annotations.googlecode.com/svn/schema/ehcache-spring/ehcache-spring-1.1.xsd
+		http://www.daewoobrenic.co.kr/schema/jcfsua http://www.daewoobrenic.co.kr/schema/jcfsua/jcf-sua-1.0.xsd
+		http://www.daewoobrenic.co.kr/schema/jcfquery http://www.daewoobrenic.co.kr/schema/jcfquery/jcf-query-1.0.xsd">
+
+	<!-- Biz Method 접근제어 설정 -->
+	<sec:global-method-security pre-post-annotations="enabled">
+		<sec:expression-handler ref="securityExpressionHandler" />
+	</sec:global-method-security>
+
+	<bean id="securityExpressionHandler" class="jcf.iam.core.authorization.expression.MethodSecurityExpressionHandler" />
+
+	<bean id="parameterIntegrationFilter" class="jcf.iam.core.authentication.AuthenticationParameterIntegrationFilter" />
+
+	<!-- 인증을 처리할 AuthenticationManager 설정 -->
+	<sec:authentication-manager alias="innerAuthenticationManager">
+		<sec:authentication-provider user-service-ref="userDetailsService" />
+	</sec:authentication-manager>
+
+	<bean id="authenticationManager"
+		class="org.springframework.security.authentication.ProviderManager">
+		<property name="authenticationEventPublisher">
+			<bean class="org.springframework.security.authentication.DefaultAuthenticationEventPublisher" />
+		</property>
+ 		<property name="parent" ref="innerAuthenticationManager" />
+	</bean>
+
+	<!-- 로그인 사용자 정보를 조회하는 서비스 -->
+	<bean id="userDetailsService" class="jcf.iam.core.authentication.userdetails.UserAuthenticationService" autowire="byType" />
+
+	<!-- 로그인 사용자가 가지는 세부접근권한을 조회하는 서비스 -->
+	<bean id="userAccessControlService" class="jcf.iam.core.authentication.userdetails.UserAccessControlService" autowire="byType" />
+
+	<!-- 인가를 처리하는 AccessDecisionManager -->
+	<bean id="accessDecisionManager" class="org.springframework.security.access.vote.AffirmativeBased">
+		<property name="allowIfAllAbstainDecisions" value="false" />
+		<property name="decisionVoters">
+			<list>
+				<bean class="org.springframework.security.access.vote.RoleVoter">
+					<property name="rolePrefix" value="" />
+				</bean>
+				<bean class="org.springframework.security.access.vote.AuthenticatedVoter" />
+				<bean class="org.springframework.security.web.access.expression.WebExpressionVoter" >
+					<property name="expressionHandler">
+						<bean class="jcf.iam.core.authorization.expression.UrlSecurityExpressionHandler" />
+					</property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+
+	<!-- URL - ROLE 간 접근제어 권한 매핑 설정 -->
+	<bean id="filterSecurityInterceptor"
+		class="org.springframework.security.web.access.intercept.FilterSecurityInterceptor">
+		<property name="observeOncePerRequest" value="false" />
+		<property name="authenticationManager" ref="authenticationManager" />
+		<property name="accessDecisionManager" ref="accessDecisionManager" />
+		<property name="securityMetadataSource" ref="securityMetadataSource" />
+	</bean>
+
+	<!--  보호자원 리스트 조회 -->
+	<bean id="securityMetadataSource" class="jcf.iam.core.authorization.SecuredResourcesMetadataSource">
+		<constructor-arg>
+			<bean class="org.springframework.security.web.util.AntUrlPathMatcher" />
+		</constructor-arg>
+		<constructor-arg>
+			<bean class="jcf.iam.core.authorization.SecuredResourcesMappingFactoryBean" init-method="init">
+				<property name="securedResourcesService">
+					<bean class="jcf.iam.core.authorization.service.SecuredResourcesService" autowire="byType" />
+				</property>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+	<!-- Digest 인증
+		<bean id="digestEntryPoint"
+		class="org.springframework.security.web.authentication.www.DigestAuthenticationEntryPoint">
+		<property name="realmName" value="jcf.iam.core" />
+		<property name="key" value="jcf.iam" />
+		<property name="nonceValiditySeconds" value="1800" />
+	</bean>
+
+	<bean id="digestFilter"
+		class="org.springframework.security.web.authentication.www.DigestAuthenticationFilter">
+		<property name="userDetailsService" ref="userDetailsService" />
+		<property name="authenticationEntryPoint" ref="digestEntryPoint" />
+		<property name="userCache">
+			<bean class="org.springframework.security.core.userdetails.cache.NullUserCache" />
+		</property>
+	</bean>
+	 -->
+
+	<bean class="jcf.iam.core.IamCustomizerFactory" />
+
+	<jcfquery:query-config id="queryExecutor" datasource="dataSource" template-engine-type="SIMPLE_ORM" />
+
+	<ehcache:annotation-driven cache-manager="ehCacheManager" proxy-target-class="true" />
+
+	<bean id="ehCacheManager" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean" >
+		<property name="configLocation" value="classpath:ehcache.xml"></property>
+	</bean>
+</beans>

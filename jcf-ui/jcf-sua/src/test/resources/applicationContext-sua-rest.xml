@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:jcfsua="http://www.daewoobrenic.co.kr/schema/jcfsua"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.daewoobrenic.co.kr/schema/jcfsua http://www.daewoobrenic.co.kr/schema/jcfsua/jcf-sua-1.0.xsd">
+
+	<context:component-scan base-package="sample"
+		use-default-filters="false">
+		<context:include-filter type="annotation"
+			expression="org.springframework.stereotype.Controller" />
+	</context:component-scan>
+
+	<jcfsua:sua-config auto-config="true" use-rest="true" />
+
+	<bean id="fileHandler" class="jcf.sua.mvc.file.MciFileHandler">
+		<property name="xplatformFileOperator">
+			<bean class="jcf.sua.ux.xplatform.mvc.file.XplatformFileOperator">
+				<property name="receiver" ref="receiver" />
+				<property name="sender" ref="sender" />
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="receiver" class="jcf.upload.MultiPartReceiverImpl">
+		<property name="maxUploadSize" value="1000000000" />
+		<property name="persistenceManager" ref="filePersistenceManager" />
+	</bean>
+
+	<bean id="sender" class="jcf.upload.FileSenderImpl">
+		<property name="persistenceManager" ref="filePersistenceManager" />
+	</bean>
+
+	<bean id="filePersistenceManager" class="jcf.upload.persistence.DefaultPersistenceManager">
+		<property name="baseDirectory" value="c:/temp" />
+	</bean>
+
+
+	<bean id="jcfSuaTestServlet" class="jcf.sua.JcfSuaTestServlet" autowire-candidate="true" />
+
+</beans>

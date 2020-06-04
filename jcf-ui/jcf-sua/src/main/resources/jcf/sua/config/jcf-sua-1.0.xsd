@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://www.daewoobrenic.co.kr/schema/jcfsua"
+	xmlns:jcfsua="http://www.daewoobrenic.co.kr/schema/jcfsua"
+	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:tool="http://www.springframework.org/schema/tool"
+	elementFormDefault="qualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"
+		schemaLocation="http://www.springframework.org/schema/beans/spring-beans-3.0.xsd" />
+	<xsd:import namespace="http://www.springframework.org/schema/tool"
+		schemaLocation="http://www.springframework.org/schema/tool/spring-tool-3.0.xsd" />
+
+	<xsd:element name="sua-config">
+        <xsd:annotation>
+			<xsd:documentation>Container element for JCF-SUA configuration</xsd:documentation>
+		</xsd:annotation>
+
+        <xsd:complexType>
+			<xsd:choice minOccurs="0" maxOccurs="unbounded">
+				<xsd:element ref="jcfsua:channel" />
+				<xsd:element ref="jcfsua:custom-interceptor" />
+				<xsd:element ref="jcfsua:custom-viewResolver" />
+			</xsd:choice>
+			<xsd:attributeGroup ref="jcfsua:sua-config.attlist" />
+		</xsd:complexType>
+    </xsd:element>
+	
+	<xsd:attributeGroup name="sua-config.attlist">
+        <xsd:attribute name="auto-config" type="xsd:boolean" default="true" />
+        <xsd:attribute name="use-rest" type="xsd:boolean" default="false" />
+        <xsd:attribute name="webflow-prefix" type="xsd:string" default="/WEB-INF" />
+        <xsd:attribute name="webflow-suffix" type="xsd:string" default=".jsp" />
+        <xsd:attribute name="handler-mapping" type="xsd:string" default="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping" />
+        <xsd:attribute name="handler-adapter" type="xsd:string" default="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter" />
+        <xsd:attribute name="dataset-converter-ref" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation source="java:jcf.sua.dataset.DataSetConverter">
+						<![CDATA[
+							사용자 정의 모델을 데이터셋으로 변환하기 위한 컨버터의 참조를 지정한다.
+						]]>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type	type="jcf.sua.dataset.DataSetConverter" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+    </xsd:attributeGroup>
+    
+	<xsd:element name="channel">
+        <xsd:complexType>
+			<xsd:attributeGroup ref="jcfsua:channel.attlist" />
+		</xsd:complexType>
+    </xsd:element>
+	<xsd:attributeGroup name="channel.attlist">
+        <xsd:attribute name="channel-type" type="jcfsua:named-sua-channel" use="required" />
+        <xsd:attribute name="first-row-size" type="xsd:positiveInteger" />
+    </xsd:attributeGroup>
+	
+	<xsd:element name="custom-interceptor">
+        <xsd:complexType>
+			<xsd:attributeGroup ref="jcfsua:interceptor.attlist" />
+		</xsd:complexType>
+    </xsd:element>
+	<xsd:attributeGroup name="interceptor.attlist">
+        <xsd:attribute name="ref" type="xsd:string" use="required" />
+    </xsd:attributeGroup>
+    
+    <xsd:element name="custom-viewResolver">
+    	<xsd:complexType>
+    		<xsd:attributeGroup ref="jcfsua:viewResolver.attlist"></xsd:attributeGroup>
+    	</xsd:complexType>
+    </xsd:element>
+    <xsd:attributeGroup name="viewResolver.attlist">
+    	<xsd:attribute name="ref" type="xsd:string" use="required" />
+    </xsd:attributeGroup>
+	
+	<xsd:simpleType name="named-sua-channel">
+		<xsd:restriction base="xsd:token">
+			<xsd:enumeration value="JSON" />
+			<xsd:enumeration value="EXTJS" />
+			<xsd:enumeration value="WEBSQUARE" />
+			<xsd:enumeration value="MIPLATFORM" />
+			<xsd:enumeration value="XPLATFORM" />
+			<xsd:enumeration value="NEXACRO" />
+			<xsd:enumeration value="GAUCE" />
+			<xsd:enumeration value="MYBUILDER" />
+			<xsd:enumeration value="WEBFLOW" />
+			<xsd:enumeration value="MOBILE" />
+			<xsd:enumeration value="FLEX" />
+			<xsd:enumeration value="WEBSQUARE" />
+		</xsd:restriction>
+	</xsd:simpleType>
+</xsd:schema>

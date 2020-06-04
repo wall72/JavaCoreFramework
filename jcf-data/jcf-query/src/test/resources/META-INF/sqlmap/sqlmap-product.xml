@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="PRODUCT">
+
+	<resultMap class="jcf.query.domain.Product" id="product-result-map">
+		<result property="productId" column="PRODUCT_ID"/>
+		<result property="productTypeId" column="PRODUCT_TYPE_ID"/>
+		<result property="productName" column="PRODUCT_NAME"/>
+		<result property="productDescription" column="PRODUCT_DESCRIPTION"/>
+		<result property="updated" column="UPDATED"/>
+	</resultMap>
+
+	<parameterMap id="paramValue" class="map">
+        <parameter property="csuCd" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN" />
+        <parameter property="resourceType" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN" />
+        <parameter property="rslt" jdbcType="INTEGER" javaType="java.lang.Integer" mode="OUT" />
+    </parameterMap>
+
+    <procedure id="rentCalc" parameterMap="paramValue" resultClass="map">
+       {call SP_EM_RENT_CALC(?, ?, ?)}
+    </procedure>
+
+
+	<parameterMap class="map" id="procParamMap">
+		<parameter property="IN_TABL_NM" jdbcType="VARCHAR" javaType="java.lang.String"			mode="IN" />	<!-- 테이블명 -->
+		<parameter property="OUT_SRNUM" jdbcType="NUMBER" javaType="java.lang.Integer"			mode="OUT" />	<!-- 테이블명 -->
+	</parameterMap>
+
+	<procedure id="proc01" parameterClass="map">
+		{ call 	edu.SP_ADM0001_SRNUM_TEST1(#IN_TABL_NM#, #OUT_SRNUM#) }
+	</procedure>
+
+	<select id="selectProductList" parameterClass="java.util.HashMap" resultMap="product-result-map">
+		<![CDATA[
+			SELECT PRODUCT_ID,
+				PRODUCT_TYPE_ID,
+				PRODUCT_NAME,
+				PRODUCT_DESCRIPTION,
+				UPDATED
+			 FROM PRODUCT
+		]]>
+
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="productId" prepend="AND">
+			   PRODUCT_ID = #productId#
+			</isNotEmpty>
+			<isNotEmpty property="productTypeId" prepend="AND">
+			   PRODUCT_TYPE_ID = #productTypeId#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+
+	<statement id="selectProducts" parameterClass="java.util.HashMap" resultClass="jcf.query.domain.Product">
+		<![CDATA[
+			SELECT PRODUCT_ID,
+				PRODUCT_TYPE_ID,
+				PRODUCT_NAME,
+				PRODUCT_DESCRIPTION,
+				UPDATED
+			 FROM PRODUCT
+		]]>
+
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="productId" prepend="AND">
+			   PRODUCT_ID = #productId#
+			</isNotEmpty>
+			<isNotEmpty property="productTypeId" prepend="AND">
+			   PRODUCT_TYPE_ID = #productTypeId#
+			</isNotEmpty>
+		</dynamic>
+	</statement>
+
+	<statement id="selectProductId" parameterClass="java.util.HashMap" resultClass="java.lang.String">
+		SELECT PRODUCT_ID || '' FROM PRODUCT WHERE PRODUCT_ID = #productId#
+	</statement>
+
+	<insert id="insertProduct1" parameterClass="java.util.Map">
+		<selectKey keyProperty="productId" resultClass="int">
+			call NEXT VALUE FOR SEQ_KEY
+		</selectKey>
+
+		INSERT INTO
+			PRODUCT
+		VALUES
+			(#productId#, #productTypeId#, #productName#, #productDescription#, sysdate);
+	</insert>
+
+	<insert id="insertProduct" parameterClass="java.util.Map">
+		INSERT INTO PRODUCT VALUES(#productId#, #productTypeId#, #productName#, #productDescription#, sysdate)
+	</insert>
+
+	<update id="updateProduct">
+		UPDATE PRODUCT SET
+			PRODUCT_NAME = #productName#,
+			PRODUCT_DESCRIPTION = #productDescription#,
+			UPDATED = sysdate
+		WHERE PRODUCT_ID = #productId#
+	</update>
+
+	<delete id="deleteProduct">
+		DELETE FROM PRODUCT WHERE PRODUCT_ID = #productId#
+	</delete>
+</sqlMap>

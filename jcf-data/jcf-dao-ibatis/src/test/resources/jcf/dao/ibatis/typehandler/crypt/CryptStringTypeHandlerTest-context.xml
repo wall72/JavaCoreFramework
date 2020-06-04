@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
+	">
+	<context:property-placeholder location="classpath:app.properties" />
+
+	<!--
+	init CryptoClient and CryptStringTypeHandler 
+	 -->
+	<bean class="jcf.dao.ibatis.typehandler.CryptStringTypeHandler">
+		<property name="charsetName" value="UTF-8" />
+		<property name="cryptClient" ref="cryptClient" />
+	</bean>
+	
+	<bean id="cryptClient" class="jcf.util.security.cipher.SeedClientFactoryBean">
+		<property name="password" value="CHANGE_IT" />
+		<property name="salt" value="0123456789" />
+		<property name="iterationCount" value="5" />
+	</bean>
+
+	<bean id="sqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		<property name="configLocation" value="classpath:jcf/dao/ibatis/typehandler/crypt/sqlMapConfig.xml" />
+		<property name="dataSource" ref="dataSource" />
+		<property name="mappingLocations" value="classpath:jcf/dao/ibatis/typehandler/crypt/sqlMap-*.xml" />
+	</bean>
+		
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.SingleConnectionDataSource">
+		<property name="driverClassName" value="${dataSource.driverClassName}" />
+		<property name="url" value="${dataSource.url}" />
+		<property name="username" value="${dataSource.username}" />
+		<property name="password" value="${dataSource.password}" />
+	</bean>
+	
+</beans>

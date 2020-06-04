@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
+	">
+	<context:property-placeholder location="classpath:app.properties" />
+
+	<!-- ResultSetMetadata를 처리하는 ibatis용 aspect 로직 주입 -->
+	<bean class="jcf.util.ibatis.aspectj.MetadataAwareAspect" factory-method="aspectOf">
+		<property name="sqlMapAdvices">
+			<bean class="jcf.util.ibatis.aspectj.MetadataAwareSqlMapAdvices"/>
+		</property>
+	</bean>
+
+	<bean id="sqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		<property name="configLocation" value="classpath:jcf/util/ibatis/aspectj/sqlMapConfig.xml" />
+		<property name="dataSource" ref="dataSource" />
+		<property name="mappingLocations" value="classpath:jcf/util/ibatis/aspectj/sqlMap-*.xml" />
+	</bean>
+
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.SingleConnectionDataSource">
+		<property name="driverClassName" value="${dataSource.driverClassName}" />
+		<property name="url" value="${dataSource.url}" />
+		<property name="username" value="${dataSource.username}" />
+		<property name="password" value="${dataSource.password}" />
+	</bean>
+
+	<bean class="jcf.test.jdbc.datasource.PrepareDataSource" autowire-candidate="false">
+		<property name="dataSource" ref="dataSource" />
+		<property name="initScripts">
+			<list>
+				<value>classpath:jcf/util/ibatis/aspectj/init.sql</value>
+			</list>
+		</property>
+	</bean>
+
+</beans>

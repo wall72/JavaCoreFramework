@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans default-autowire="no" default-lazy-init="false" default-dependency-check="none" xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+	"
+>
+	<bean id="seedClient" class="jcf.util.security.cipher.SeedClientFactoryBean">
+		<property name="password" value="CHANGE_IT" />
+		<property name="salt" value="01234567" />
+		<property name="iterationCount" value="5" />
+	</bean>
+	
+</beans>

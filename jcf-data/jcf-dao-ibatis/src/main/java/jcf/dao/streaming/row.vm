@@ -1,0 +1,5 @@
+   <Row ss:AutoFitHeight="0">
+#foreach( ${column} in ${COLUMNS} )
+    <Cell><Data ss:Type="#if(${column.type})${column.type}#{else}String#end">$!{column.value}</Data></Cell>
+#end
+   </Row>

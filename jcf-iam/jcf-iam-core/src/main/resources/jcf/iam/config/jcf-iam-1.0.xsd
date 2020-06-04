@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://www.daewoobrenic.co.kr/schema/jcfiam"
+	xmlns:jcfiam="http://www.daewoobrenic.co.kr/schema/jcfiam"
+	elementFormDefault="qualified">
+	<xsd:element name="iam-config">
+        <xsd:annotation>
+			<xsd:documentation>Container element for JCF-IAM configuration</xsd:documentation>
+		</xsd:annotation>
+        <xsd:complexType>
+			<xsd:choice maxOccurs="unbounded">
+				<xsd:element ref="jcfiam:filter-security-interceptor" minOccurs="0" maxOccurs="1" />
+				<xsd:element ref="jcfiam:parameter-integration-filter" maxOccurs="1" />
+				<xsd:element ref="jcfiam:custom-method-expression-handler" maxOccurs="1" />
+				<xsd:element ref="jcfiam:custom-security-model" maxOccurs="1" />
+			</xsd:choice>
+			<xsd:attributeGroup ref="jcfiam:iam-config.attlist" />
+		</xsd:complexType>
+    </xsd:element>
+	<xsd:attributeGroup name="iam-config.attlist">
+        <xsd:attribute name="query-executor-id" type="xsd:string" use="required" >
+			<xsd:annotation>
+				<xsd:documentation source="java:jcf.query.core.QueryExecutor">
+					<![CDATA[
+						JCFQUERY Executor 정의
+					]]>
+				</xsd:documentation>
+			</xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="user-service-id" type="xsd:string" use="required" />
+        <xsd:attribute name="authentication-manager-id" type="xsd:string" use="required" />
+        <xsd:attribute name="access-decision-manager-id" type="xsd:string" />
+        <xsd:attribute name="use-security-event" type="xsd:boolean" default="false" />
+    </xsd:attributeGroup>
+	<xsd:element name="filter-security-interceptor">
+        <xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string" use="required" />
+		</xsd:complexType>
+    </xsd:element>
+	<xsd:element name="parameter-integration-filter">
+        <xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="parameter" minOccurs="0" maxOccurs="unbounded" >
+					<xsd:complexType>
+						<xsd:attribute name="name" type="xsd:string"/>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:attribute name="id" type="xsd:string" use="required" />
+		</xsd:complexType>
+    </xsd:element>
+	<xsd:element name="custom-method-expression-handler">
+        <xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string" use="required" />
+		</xsd:complexType>
+    </xsd:element>
+    <xsd:element name="custom-security-model">
+        <xsd:complexType>
+        	<xsd:sequence>
+				<xsd:element name="security-class" minOccurs="0" maxOccurs="unbounded">
+			        <xsd:complexType>
+						<xsd:attribute name="type" type="jcfiam:named-security-model-type" use="required" />
+						<xsd:attribute name="class" type="xsd:string" use="required" />
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+	       	<xsd:attribute name="use-acl" type="xsd:boolean" default="false" />
+	       	<xsd:attribute name="use-default-model" type="xsd:boolean" default="true" />
+		</xsd:complexType>
+    </xsd:element>
+    <xsd:simpleType name="named-security-model-type">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="USER" />
+			<xsd:enumeration value="ROLE" />
+			<xsd:enumeration value="AUTHORITY" />
+			<xsd:enumeration value="SECURED_RESOURCES_ROLES" />
+			<xsd:enumeration value="SECURED_RESOURCES_USERS" />
+			<xsd:enumeration value="PERMISSION" />
+			<xsd:enumeration value="PERMISSION_USERS" />
+			<xsd:enumeration value="PERMISSION_ROLES" />
+			<xsd:enumeration value="VIEW_RESOURCES" />
+		</xsd:restriction>
+	</xsd:simpleType>
+</xsd:schema>

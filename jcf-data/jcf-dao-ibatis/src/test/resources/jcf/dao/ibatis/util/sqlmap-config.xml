@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE sqlMapConfig      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map Config 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+	<settings cacheModelsEnabled="true" />
+
+	<!-- ==========Framework Configuration Section============= -->
+	<sqlMap resource="jcf/dao/ibatis/util/Dummy.xml" />
+	<sqlMap resource="jcf/dao/ibatis/util/Type.xml" />
+
+</sqlMapConfig>

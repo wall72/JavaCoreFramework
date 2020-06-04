@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//iBATIS.com//DTD SQL Map Config 2.0//EN" 
+		"http://www.ibatis.com/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+	<settings cacheModelsEnabled="true" />
+ <!-- 
+	<typeHandler callback="jcf.dao.ibatis.typehandler.BaseClobStringTypeHandler"
+		jdbcType="CLOB" javaType="java.lang.String" />
+ -->
+	<typeHandler callback="jcf.dao.ibatis.typehandler.OracleStringTypeHandler"
+		 javaType="java.lang.String" />
+		 
+
+	<!-- ==========Framework Configuration Section============= -->
+	<sqlMap resource="jcf/dao/ibatis/typehandler/Type.xml" />
+
+</sqlMapConfig>

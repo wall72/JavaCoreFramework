@@ -1,0 +1,4 @@
+$date;
+
+Time      $date.getHours():$date.getMinutes():$date.getSeconds()
+Date      $date.getDate()/$date.getMonth()/$date.getYear()

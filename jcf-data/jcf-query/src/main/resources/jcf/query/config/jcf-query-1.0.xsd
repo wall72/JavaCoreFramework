@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://www.daewoobrenic.co.kr/schema/jcfquery"
+	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:tool="http://www.springframework.org/schema/tool"
+	xmlns:jcfquery="http://www.daewoobrenic.co.kr/schema/jcfquery"
+	elementFormDefault="qualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"
+		schemaLocation="http://www.springframework.org/schema/beans/spring-beans-3.0.xsd" />
+	<xsd:import namespace="http://www.springframework.org/schema/tool"
+		schemaLocation="http://www.springframework.org/schema/tool/spring-tool-3.0.xsd" />
+
+	<xsd:element name="query-config">
+		<xsd:annotation>
+			<xsd:documentation>Container element for JCF-QUERY configuration
+			</xsd:documentation>
+		</xsd:annotation>
+
+		<xsd:complexType>
+			<xsd:choice minOccurs="0" maxOccurs="unbounded">
+				<xsd:element ref="jcfquery:stream-handler" />
+				<xsd:element ref="jcfquery:parameter-exception-handler" />
+				<xsd:element ref="jcfquery:macros" />
+			</xsd:choice>
+			<xsd:attributeGroup ref="jcfquery:query-config.attlist" />
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="stream-handler">
+		<xsd:complexType>
+			<xsd:attribute name="ref" type="xsd:string" default="streamHandler">
+				<xsd:annotation>
+					<xsd:documentation source="java:jcf.query.core.handler.StreamHandler"><![CDATA[
+						대용량 데이터 처리를 위한 스트리밍 핸들러 정의 (bean id 가 streamHandler일 경우 생략가능)
+							]]></xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type	type="jcf.query.core.handler.StreamHandler" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="parameter-exception-handler">
+		<xsd:complexType>
+			<xsd:attribute name="ref" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation source="java:jcf.query.core.handler.ParameterExceptionHandler"><![CDATA[
+						JCFQUERY Map/Bean 타입의 매개변수를 지원한다.
+						자바 기본형을 PARAMETER로 사용하여 발생하는 예외를 처리하는 ExceptionHandler
+							]]></xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="jcf.query.core.handler.ParameterExceptionHandler" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="macros">
+		<xsd:complexType>
+			<xsd:choice minOccurs="0" maxOccurs="unbounded">
+				<xsd:element ref="jcfquery:macro" />
+			</xsd:choice>
+			<xsd:attribute name="type" type="jcfquery:macro-enable-template-type" 	default="VELOCITY" />
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="macro">
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string" use="required" />
+			<xsd:attribute name="class" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation source="java:jcf.query.core.evaluator.support.MacroSupport">
+						<![CDATA[
+							Template엔진에서 사용할 매크로 정의
+						]]>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="direct">
+							<tool:expected-type type="jcf.query.core.evaluator.support.MacroSupport" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:attributeGroup name="query-config.attlist">
+		<xsd:attribute name="id" type="xsd:string" use="required" />
+		<xsd:attribute name="datasource" type="xsd:string" use="required" />
+		<xsd:attribute name="template-engine-type" type="jcfquery:named-template-type" 	default="DEFAULT" />
+		<xsd:attribute name="ibatis-sqlmap-client" type="xsd:string" default="sqlMapClient" />
+		<xsd:attribute name="custom-template-engine-ref" type="xsd:string" >
+			<xsd:annotation>
+				<xsd:documentation source="java:jcf.query.core.evaluator.QueryEvaluator"><![CDATA[
+					사용자 정의 QueryEvaluator 등록
+						]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="jcf.query.core.evaluator.QueryEvaluator" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="fetchSize" type="xsd:string" default="0"/>
+	</xsd:attributeGroup>
+	<xsd:simpleType name="named-template-type">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="DEFAULT" />
+			<xsd:enumeration value="VELOCITY" />
+			<xsd:enumeration value="FREEMARKER" />
+			<xsd:enumeration value="IBATIS" />
+			<xsd:enumeration value="SIMPLE_ORM" />
+			<xsd:enumeration value="CUSTOM" />
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="macro-enable-template-type">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="VELOCITY" />
+			<xsd:enumeration value="FREEMARKER" />
+			<xsd:enumeration value="CUSTOM" />
+		</xsd:restriction>
+	</xsd:simpleType>
+</xsd:schema>

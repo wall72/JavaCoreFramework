@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:sec="http://www.springframework.org/schema/security"
+	xmlns:ehcache="http://ehcache-spring-annotations.googlecode.com/svn/schema/ehcache-spring"
+	xmlns:jcfsua="http://www.daewoobrenic.co.kr/schema/jcfsua"
+	xmlns:jcfquery="http://www.daewoobrenic.co.kr/schema/jcfquery"
+	xmlns:jcfiam="http://www.daewoobrenic.co.kr/schema/jcfiam"
+	xsi:schemaLocation="http://www.springframework.org/schema/jdbc
+		http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
+		http://www.springframework.org/schema/aop
+		http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context-3.0.xsd
+		http://www.springframework.org/schema/security
+		http://www.springframework.org/schema/security/spring-security-3.0.xsd
+		http://ehcache-spring-annotations.googlecode.com/svn/schema/ehcache-spring
+		http://ehcache-spring-annotations.googlecode.com/svn/schema/ehcache-spring/ehcache-spring-1.1.xsd
+		http://www.daewoobrenic.co.kr/schema/jcfsua http://www.daewoobrenic.co.kr/schema/jcfsua/jcf-sua-1.0.xsd
+		http://www.daewoobrenic.co.kr/schema/jcfquery http://www.daewoobrenic.co.kr/schema/jcfquery/jcf-query-1.0.xsd
+		http://www.daewoobrenic.co.kr/schema/jcfiam http://www.daewoobrenic.co.kr/schema/jcfiam/jcf-iam-1.0.xsd">
+
+
+	<sec:authentication-manager alias="authenticationManager">
+		<sec:authentication-provider
+			user-service-ref="us" />
+	</sec:authentication-manager>
+
+	<jcfiam:iam-config query-executor-id="queryExecutor" user-service-id="us" authentication-manager-id="authenticationManager"
+		access-decision-manager-id="accessDecisionManager" use-security-event="true">
+		<jcfiam:filter-security-interceptor id="filterSecurityInterceptor" />
+		<jcfiam:parameter-integration-filter id="parameterIntegrationFilter" >
+			<jcfiam:parameter name="j_company" />
+		</jcfiam:parameter-integration-filter>
+		<jcfiam:custom-method-expression-handler id="securityExpressionHandler" />
+		<jcfiam:custom-security-model use-acl="false">
+			<jcfiam:security-class type="USER" class="jcf.iam.core.authentication.userdetails.model.User" />
+			<jcfiam:security-class type="ROLE" class="jcf.iam.core.authentication.userdetails.model.Role" />
+		</jcfiam:custom-security-model>
+	</jcfiam:iam-config>
+
+	<bean id="us" class="jcf.iam.core.authentication.userdetails.UserAuthenticationService" />
+
+	<jcfquery:query-config id="queryExecutor" datasource="dataSource" template-engine-type="SIMPLE_ORM" />
+
+	<jdbc:embedded-database id="dataSource" type="HSQL">
+		<jdbc:script location="classpath:db-script/hsql-db-script.sql"/>
+	</jdbc:embedded-database>
+
+</beans>

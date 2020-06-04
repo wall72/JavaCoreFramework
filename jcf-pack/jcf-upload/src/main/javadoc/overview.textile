@@ -1,0 +1,354 @@
+jcf-fileupload-3.8.
+
+{toc}
+
+h2. 개요
+
+h4. 파일 전송 모듈
+
+# 웹 브라우저(클라이언트)의 파일 업로드 및 다운로드 요청을 처리한다.
+# 파일 콘텐츠 및 부가 정보를 한 곳에서 저장, 조회 및 관리한다.
+# 파일 콘텐츠 관리 단위는 멀티파트 전송을 한 단위로 한다.
+# 업로드는 멀티파트 전송이 단위가 되고, 다운로드시에는 파일 단위로 전송한다.
+
+h4. 특징
+
+* 파일 관리의 일원화
+* 멀티파트 업로드 콘텐츠 식별 방안 제시
+* 비즈니스 코드 분리
+* 파일 처리 추상화
+
+h2. 3.7에서 3.8 버전으로의 변화 내용
+
+h4. request dispatcher 역할 분리
+
+기존 3.7 버전에서의 fileupload 모듈은 TransmissionOperator를 중심으로 제어하게 되므로 기존 MVC 체계의 컨트롤러와의 통합에 있어 개념상 어려움이 있었으나,
+3.8 버전에서는 이러한 URL dispatcher 역할을 분리하여 MVC 핸들러를 그대로 사용하거나 별도의 서블릿 매핑을 하여 사용하는 방법을 모두 지원한다.
+
+별도 서블릿 매핑을 하는 경우에도 Spring을 사용하는 경우 Schema 기반의 URL-UploadEventHandler 매핑으로 다양한 업무 요구를 간단하게 설정처리할 수 있다.
+
+주 - TransmissionOperator는 deprecate 되었으며, 이는 개별 구현으로 넘기도록 한다.
+
+h4. URL과 파일시스템 구조 개념의 명확한 분리
+
+기존 3.7 버전에서는 URL과 PersistenceManager 상의 디렉토리/파일을 명확히 구분하지 않은 개념 및 용어 사용으로 혼동이 있었으나 3.8에서는 URL과 folder/fileName으로 명확하게 구분하고 있다.  
+
+
+h2. 기존 파일 전송 모듈의 문제점
+
+h4. 업로드와 다운로드 체계 
+ 
+업로드와 다운로드 체계 상이 
+
+* 서블릿 파일 업로드 기술 및 파일 저장 및 관리 로직, 업무 로직 등에 얽매여 업로드/다운로드 모듈을 매번 다시 작성해야 함.
+* 업로드한 파일에 대한 체계화된 관리 방법을 제시하지 못함.
+
+h4. 리소스 식별성 
+
+* 자료를 식별하기 위한 방법이 RESTful 하지 못하여 웹 자료에 대한 접근 안정성이 떨어짐.
+ 
+h4. 비즈니스 코드에 종속 
+
+* UI 기술별로 요청 처리 및 응답 처리 방식이 달라 파일 업로드/다운로드 모듈을 매번 새로 작성해야 함.
+* 폼 처리 로직이 파일 업로드 로직과 제어권을 나누어가짐 으로 개발 코드가 뒤섞임.
+
+h4. 파일 시스템 보안 문제
+
+* 웹 요청으로부터 관리 범위가 아닌 파일 시스템 디렉토리를 접근할 수 있는 가능성
+
+h4. 다양한 파일 속성 저장 로직
+
+* 파일 저장 뿐 아니라 다양한 멀티파트 요청의 업무 로직을 처리하기 위해 매번 새로 작성.
+
+
+h2. 파일 전송 모듈의 구성
+
+h4. 구성도
+
+!doc-files/filetransfer.png!
+
+h4. 구성요소
+
+h5. Upload Servlet
+
+웹 애플리케이션에 등록된 임의의 서블릿으로, 개별 구현한 서블릿 또는 별도의 웹 프레임워크를 이용하여도 무방하다.
+단, 웹 프레임워크 등에서 별도의 멀티파트 핸들러를 설치하거나 ServletRequest의 InputStream을 열거나 ServletResponse,의 OutputStream을 먼저 이용한 경우는 사용할 수 없다.
+
+* 요청 정보 분석을 통해서 folder 및 개별 파일 호출 이름(업무 규칙에 의해 생성하여 나중에 다운로드 요청시 필요) 정보를 추출
+* PersistenceManager를 통하여 업로드 파일들을 저장
+* 업로드 처리 결과 화면 응답
+* 에러 및 로그 처리
+
+h5. Download Servlet
+
+이 서블릿의 URL Mapping 패턴은 뒷 부분을 와일드 카드로 지정하여 파일 식별자와 상관 없이 클라이언트에 제시되는 파일 이름 부분을 임의로 제시할 수 있도록 해 주는 것이 좋다. 예를 들어 /download/* 과 같이 지정해주는 것이 좋다. 
+
+업로드인지 다운로드인지 구분만 할 수 있으면  다운로드와 업로드를 동일한 서블릿을 이용해도 되고, 별도의 서블릿 URL을 각각 주어도 상관 없다.
+
+* 요청 정보 분석을 통해서 folder 및 개별 파일 호출 이름 정보를 추출
+* HTTP 헤더 처리 (첨부파일 처리 또는 이미지 등 MIME 타입 처리)
+* PersistenceManager를 통하여 파일을 서블릿 스트림으로 보냄
+* 에러 및 로그 처리
+
+h5. what comes in here?
+
+
+h5. PersistenceManager
+
+업로드된 파일 저장 및 조회, 삭제, 디렉토리 삭제를 담당한다. 저장 장소는 임의 구조의 파일시스템 (디렉토리 또는 데이터베이스, JCR 등)이 된다. 
+
+h5. UploadEventHandler
+
+두 가지 기능이 있다.
+
+* 업로드 요청에 대해 허용 여부를 판정한다.
+* 멀티파트 스트림 전송을 완료한 후 폼 필드 및 파일에 대한 업무적인 후처리를 수행한다. 예를 들어 게시판인 경우 제목, 본문, 파일 이름 등에 대해 데이터베이스 테이블에 저장, 관리할 수 있다.
+
+
+h4. 이 모듈에 포함되지 않는 것들
+
+브라우저별 특이사항 처리
+응답 화면 처리
+파일 시스템 처리 및 관리 (기본 구현 예는 제공)
+서블릿
+데이터베이스 업무
+
+
+h4. 라이브러리 의존성
+
+|_ 구분 |_ 라이브러리 |
+|/4 mandatory | 
+| servlet api |
+| slf4j-api |
+| commons-fileupload |
+|/3 optional |
+| commons-io |
+| spring-web |
+
+
+h2. 주요 용어 및 호출 방법
+
+|_ 용어 |_ 설명 |
+| URN | 멀티파트 한 묶음의 고유 식별자. 논리적인 멀티파트 콘텐츠의 위치. |
+| fileCount | 멀티파트 중 파일로 식별되는 내용의 순번 |
+
+URI 호출 예를 들어 설명하면, 
+
+|_ 구분|_ 요청 |
+|업로드  | POST / [contextPath] /upload/ [URN] |
+|다운로드  | POST / [contextPath] /upload/ [URN] / [fileCount] / [임의의 파일명] |
+
+위의 예와 같이 URI의 맨 뒤의 부분은 파일 명 처럼 만들어두면 각종 브라우저에서 다운로드 파일 명을 제시할 때
+이용하게 된다.
+
+요청 URI에서의 URN 및 fileCount 부분은 반드시 평문으로 할 필요 없이, 암복호화 또는 시간 함수의 결과로 만들어도 된다.
+
+h2. SpringFramework 설치 예
+
+* web.xml
+
+pre.. 
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app id="WebApp_ID" version="2.4"
+	xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+	<display-name>sltis_sample</display-name>
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>
+		classpath:/applicationContext.xml
+		</param-value>
+	</context-param>
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	<servlet>
+		<servlet-name>upload</servlet-name>
+		<servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>upload</servlet-name>
+		<url-pattern>/upload/*</url-pattern>
+	</servlet-mapping>
+</web-app>
+p. 
+* applicationContext.xml
+
+pre.. 
+<?xml version="1.0" encoding="EUC-KR"?>
+<beans 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans" 
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	">
+	<bean id="upload" class="sample.UploadHandler">
+		<property name="fileTransmissionOperator" ref="fileTransmissionOperator" />
+	</bean>
+	<bean id="fileTransmissionOperator" class="jcf.fileupload.TransmissionOperator">
+		<property name="maxUploadSize" value="1000000000" />
+		<property name="uploadEventListeners">
+			<list>
+				<bean class="sample.SampleUploadEventListener" />
+			</list>
+		</property>
+		<property name="persistenceManager">
+			<bean class="jcf.fileupload.file.FilePersistenceManager">
+				<property name="baseDirectory" value="d:/tmp/upload" />
+			</bean>
+		</property>
+	</bean>
+</beans>
+p. 
+* UploadHandler.java
+pre.. 
+package sample;
+
+import java.io.IOException;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import jcf.fileupload.MultiPartInfo;
+import jcf.fileupload.TransmissionOperator;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.HttpRequestHandler;
+
+/**
+ * 파일 업로드 처리를 위한 샘플 서블릿 핸들러.
+ * <p>
+ * 서블릿 클래스로는 {@link org.springframework.web.context.support.HttpRequestHandlerServlet}
+ * 를 등록하여 서블릿 이름과 동일한 이름으로 이 {@link HttpRequestHandler} 타입을 등록하여 사용.
+ * <p>
+ * 서블릿 URL 매핑은 임의의 확장명을 처리하도록 특정 URL 이하 서브 디렉토리를 이용하도록 한다. (예: "/upload/*" )
+ * <p>
+ *  /로 끝나면 업로드로 처리하고 아니면 다운로드로 처리한다.
+ * 
+ * @author Administrator
+ */
+public class UploadHandler implements HttpRequestHandler {
+	
+	private static final Logger logger = LoggerFactory.getLogger(UploadHandler.class);
+	
+	private TransmissionOperator transmissionOperator;
+	
+	public void setFileTransmissionOperator(TransmissionOperator fileTransmissionOperator) {
+		this.transmissionOperator = fileTransmissionOperator;
+	}
+
+	
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * 파일 업로드 및 다운로드 요청을 구분하여 처리하는 샘플 서블릿 핸들러.
+	 * <ul>
+	 * <li>업로드와 다운로드를 구분</li>
+	 * <li>request URI로부터 URN 추출</li>
+	 * <li>추가로 다운로드시에는 fileCount 추출</li>
+	 * </ul>
+	 * 위 정보를 이용하여 멀티파트 핸들러 호출
+	 * <p>
+	 * 
+	 */
+	public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String urn = request.getPathInfo();
+		if (urn.endsWith("/")) {
+			upload(request, response);
+			
+		} else {
+			download(request, response);
+		}
+	}
+		
+	private void upload(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		String path = request.getPathInfo();
+		String urn = path.substring(0, path.lastIndexOf("/"));
+		
+		try {
+			MultiPartInfo info = transmissionOperator.receiveMultipartRequest(request, urn);
+			request.setAttribute("attributes", info.getAttributes());
+			request.setAttribute("fileInfos", info.getFileInfos());
+			
+			request.getRequestDispatcher("/upload.jsp").forward(request, response);
+			
+		} catch (Exception e) {
+			logger.warn("error upload to " + urn, e);
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "error upload to " + urn);
+		}
+		
+	}
+	
+	/**
+	 * path의 마지막은 리소스를 논리적으로 나타내는 위치에서 제외되고  대신 클라이언트 브라우저에 제시될
+	 * 파일명이 된다. 마지막에서 두 번째는 fileCount로 추출한다.
+	 * 
+	 * @param request
+	 * @param response
+	 * @throws IOException 
+	 * @throws ServletException
+	 * @throws IOException
+	 */
+	private void download(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		String path = request.getPathInfo();
+		
+		String urnAndFileCount = path.substring(0, path.lastIndexOf("/"));
+		
+		int delimitFileCount = urnAndFileCount.lastIndexOf("/");
+		String urn = urnAndFileCount.substring(0, delimitFileCount);
+		int fileCount = Integer.parseInt(urnAndFileCount.substring(delimitFileCount + 1));
+		
+		try {
+			transmissionOperator.sendOctetStream(response, urn, fileCount);
+			
+		} catch (IOException e) {
+			logger.warn("error sending download stream", e);
+		}
+	}	
+
+}
+
+p. 
+* SampleUploadEventListener.java
+pre.. 
+package sample;
+
+import java.util.Iterator;
+
+import javax.servlet.http.HttpServletRequest;
+
+import jcf.fileupload.FileInfo;
+import jcf.fileupload.MultiPartInfo;
+import jcf.fileupload.UploadEventHandler;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class SampleUploadEventListener implements UploadEventHandler {
+	private static final Logger logger = LoggerFactory.getLogger(SampleUploadEventListener.class);
+	public boolean authorityCheck(HttpServletRequest request, String urn) {
+		logger.info("urn {} is accepted", urn);
+		return true;
+	}
+
+	public void postprocess(String urn, MultiPartInfo info) {
+		logger.info("form upload attributes : {}", info.getAttributes());
+		Iterator<FileInfo> it = info.getFileInfos().iterator();
+		while (it.hasNext()) {
+			FileInfo fileInfo = it.next();
+			logger.info("file uploads : {} {} {} {} {}", 
+					new Object[]{
+					fileInfo.getName(), 
+					new Long(fileInfo.getSize()),
+					fileInfo.getType(),
+					fileInfo.getUrn(),
+					new Integer(fileInfo.getFileCount())
+					});
+			}
+	}
+
+}
+
+

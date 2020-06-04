@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:jcfsua="http://www.daewoobrenic.co.kr/schema/jcfsua"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.daewoobrenic.co.kr/schema/jcfsua http://www.daewoobrenic.co.kr/schema/jcfsua/jcf-sua-1.0.xsd">
+
+	<context:component-scan base-package="jcf.sua.support,jcf.sua.support.validation.sample" />
+
+
+
+	<bean id="traceInterceptor" class="jcf.sua.support.trace.web.TraceInterceptor">
+		<property name="businessTransactionIdPrefix" value="JCFSUA-SUPPORT"/>
+		<property name="traceRecorder">
+			<bean class="jcf.sua.support.trace.recorder.DefaultLogTraceRecorder">
+				<property name="messageSourceAccessor" ref="messageSourceAccessor" />
+			</bean>
+		</property>
+	</bean>
+
+	<jcfsua:sua-config auto-config="true" handler-mapping="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping" >
+		<!--
+		<jcfsua:custom-interceptor ref="traceInterceptor"/>
+		 -->
+	</jcfsua:sua-config>
+
+	<bean id="jcfSuaTestServlet" class="jcf.sua.JcfSuaTestServlet"
+		autowire-candidate="true" />
+
+	<bean id="fileTransmissionOperator" class="jcf.fileupload.TransmissionOperator">
+		<property name="maxUploadSize" value="1000000000" />
+		<property name="uploadEventListeners">
+			<list>
+				<bean class="jcf.sua.mvc.file.DefaultUploadEventHandler" />
+			</list>
+		</property>
+		<property name="persistenceManager" ref="filePersistenceManager" />
+	</bean>
+
+	<bean id="filePersistenceManager" class="jcf.fileupload.file.FilePersistenceManager">
+		<property name="baseDirectory" value="c:/temp" />
+	</bean>
+
+</beans>
